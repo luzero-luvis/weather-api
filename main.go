@@ -23,7 +23,7 @@ func main() {
 		})
 	})
 
-	if err := http.ListenAndServe(":8001", r); err != nil {
+	if err := http.ListenAndServe(":8000", r); err != nil {
 		fmt.Println("error starting", err)
 	}
 }
