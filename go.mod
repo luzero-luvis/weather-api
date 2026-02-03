@@ -2,4 +2,7 @@ module weather-api
 
 go 1.25.5
 
-require github.com/go-chi/chi/v5 v5.2.4 // indirect
+require (
+	github.com/go-chi/chi/v5 v5.2.4 // indirect
+	github.com/godotenv/godotenv v1.5.2 // indirect
+)
