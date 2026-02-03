@@ -1,4 +1,4 @@
-name: CI for build and pushing the docker image
+name: CI for build and pushing the docker image!
 on:
   push:
     branches:
