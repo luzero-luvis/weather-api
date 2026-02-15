@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func setUp(env string) *slog.Logger {
+func Setup(env string) *slog.Logger {
 	var handler slog.Handler
 
 	if env == "development" || env == "" {

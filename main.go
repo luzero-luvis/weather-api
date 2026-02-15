@@ -7,6 +7,8 @@ import (
 
 	"weather-api/internal/client"
 	"weather-api/internal/config"
+	"weather-api/internal/logger"
+	"weather-api/internal/middleware"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/godotenv/godotenv"
@@ -21,7 +23,7 @@ func main() {
 		return
 	}
 
-	logger.setUp(conf.Env)
+	logger.Setup(conf.Env)
 
 	slog.Info("starting weather api sererver",
 		"port", conf.Port,
@@ -30,7 +32,7 @@ func main() {
 
 	r := chi.NewRouter()
 
-	r.Use(middleware.loggigMiddleware)
+	r.Use(middleware.LoggingMiddleware)
 
 	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

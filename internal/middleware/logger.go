@@ -23,7 +23,7 @@ func (rw *reposeWriter) WriteHeader(code int) {
 // This is the middleware function
 // It wraps the real handler and adds logging
 
-func loggigMiddleware(next http.Handler) http.Handler {
+func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 

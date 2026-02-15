@@ -27,7 +27,6 @@ func Load() (*Config, error) {
 	slog.Info("configuration loaded",
 		"port", conf.Port,
 		"env", conf.Env,
-		"apiKey", conf.APIKey,
 	)
 	return conf, nil
 }
