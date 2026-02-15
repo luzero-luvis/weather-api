@@ -1,0 +1,51 @@
+# Git files
+.git
+.github
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.out
+bin/
+
+# Test files
+*.test
+coverage.*
+*.coverprofile
+profile.cov
+
+# Go workspace
+go.work
+go.work.sum
+
+# Editor configs
+.vim/
+.nvim/
+.vscode/
+.idea/
+
+# Docker files
+Dockerfile*
+.dockerignore
+docker-compose*.yml
+
+# CI/CD (if not needed in image)
+.github/
+
+# Other
+*.log
+*.tmp
+tmp/
