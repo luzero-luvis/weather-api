@@ -2,12 +2,13 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"weather-api/internal/client"
 	"weather-api/internal/config"
+	"weather-api/internal/logger"
+	"weather-api/internal/middleware"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/godotenv/godotenv"
@@ -18,16 +19,26 @@ func main() {
 
 	conf, err := config.Load()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("faied to load env", "error", err)
+		return
 	}
 
-	log.Printf("Starting server on port %s", conf.Port)
+	logger.Setup(conf.Env)
+
+	slog.Info("starting weather api sererver",
+		"port", conf.Port,
+		"env", conf.Env,
+	)
 
 	r := chi.NewRouter()
+
+	r.Use(middleware.LoggingMiddleware)
+
 	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
-		log.Println("server is running")
+
+		slog.Debug("health check called")
 	})
 
 	r.Route("/api/v1", func(r chi.Router) {
@@ -37,13 +48,24 @@ func main() {
 
 			// if city name is null just say i need ciry name to fetch the data
 			if city == "" {
+
+				slog.Warn("weather request missing city parameter",
+					"path", r.URL.Path,
+				)
+
 				http.Error(w, "city parameteta needs", http.StatusBadRequest)
+				return
 			}
 
 			// calling the func that we alreay written in config
 			weather, err := client.GetWeather(conf.BaseURL, conf.APIKey, city)
 			if err != nil {
+				slog.Error("failed to get weather data",
+					"city", city,
+					"error", err,
+				)
 				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
 
 			// tell browser that its  json data
@@ -51,14 +73,25 @@ func main() {
 
 			Prettyjson, err := json.MarshalIndent(weather, " ", "")
 			if err != nil {
+
+				slog.Error("failed to encode weather response",
+					"city", city,
+					"error", err,
+				)
 				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
+
+			slog.Info("weather request completed successfully",
+				"city", city,
+			)
 
 			w.Write(Prettyjson)
 		})
 	})
 
+	slog.Info("server listening", "port", conf.Port)
 	if err := http.ListenAndServe(":"+conf.Port, r); err != nil {
-		fmt.Println("error starting", err)
+		slog.Error("server failed to start", "error", err)
 	}
 }
