@@ -1,31 +1,36 @@
-FROM golang:1.25-alpine AS builder
+# builder 
+FROM golang:1.25.5-alpine3.21 AS builder
+
+RUN apk add --no-cache ca-certificates
 
 WORKDIR /app
 
-COPY go.sum ./
+COPY go.mod go.sum ./
 
-COPY go.mod ./
+RUN go mod download && go mod verify
 
-RUN go mod download
+COPY . .
 
-COPY . ./
+RUN CGO_ENABLED=0 GOOS=linux go build \
+  -ldflags="-w -s" \
+  -trimpath \
+  -o weather-api \
+  .
+# run time 
+FROM scratch
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o weather-api .
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-FROM alpine:latest
+COPY --from=builder /etc/passwd /etc/passwd
 
-RUN apk --no-cache add ca-certificates
-
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+COPY --from=builder /etc/group  /etc/group
 
 WORKDIR /app
 
 COPY --from=builder /app/weather-api .
 
-COPY --from=builder /app/go.mod .
-
-USER appuser 
+USER nobody:nobody
 
 EXPOSE 8000
 
-CMD ["./weather-api"]
+ENTRYPOINT ["./weather-api"]

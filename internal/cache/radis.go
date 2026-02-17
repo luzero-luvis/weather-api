@@ -63,7 +63,7 @@ func (r *RedisClient) Set(ctx context.Context, key string, value interface{}) er
 
 	sixHours := 6 * time.Hour
 
-	if err := r.client.Set(ctx, key, jsonData, sixHours); err != nil {
+	if err := r.client.Set(ctx, key, jsonData, sixHours).Err(); err != nil {
 		slog.Error("error setting data to redis", "key", key, "error", err)
 	}
 

@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strings"
 
+	"weather-api/internal/cache"
 	"weather-api/internal/client"
 	"weather-api/internal/config"
 	"weather-api/internal/logger"
@@ -29,6 +31,14 @@ func main() {
 		"port", conf.Port,
 		"env", conf.Env,
 	)
+
+	redisClinet, err := cache.NewRedisClient(conf.RedisAddr, conf.RedisPass, conf.RedisDB)
+	if err != nil {
+		slog.Error("error connectig with redis", "error", err)
+		return
+	}
+
+	defer redisClinet.Close()
 
 	r := chi.NewRouter()
 
@@ -57,8 +67,26 @@ func main() {
 				return
 			}
 
+			cacheKey := "weather:" + strings.ToLower(city)
+
+			var weather client.WeatherResponse
+
+			err := redisClinet.Get(r.Context(), cacheKey, &weather)
+
+			if err == nil {
+
+				slog.Info("fetched the data from cache", "city", city)
+				w.Header().Set("Content-Type", "application/json")
+				w.Header().Set("Hit", "cache")
+
+				PrettyJSON, _ := json.MarshalIndent(weather, "", "")
+				w.Write(PrettyJSON)
+				return
+			}
+
+			slog.Debug("mising cache calling the api", "city", city)
 			// calling the func that we alreay written in config
-			weather, err := client.GetWeather(conf.BaseURL, conf.APIKey, city)
+			weatherData, err := client.GetWeather(conf.BaseURL, conf.APIKey, city)
 			if err != nil {
 				slog.Error("failed to get weather data",
 					"city", city,
@@ -68,10 +96,14 @@ func main() {
 				return
 			}
 
+			if err := redisClinet.Set(r.Context(), cacheKey, &weatherData); err != nil {
+				slog.Warn("failed to set the cache to redis", "city", city)
+			}
+
 			// tell browser that its  json data
 			w.Header().Set("Content-Type", "application/json")
-
-			Prettyjson, err := json.MarshalIndent(weather, " ", "")
+			w.Header().Set("X-Cache", "MISS")
+			Prettyjson, err := json.MarshalIndent(weatherData, " ", "")
 			if err != nil {
 
 				slog.Error("failed to encode weather response",
