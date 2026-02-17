@@ -1,5 +1,7 @@
 # Weather API
 
+> This project is part of the [roadmap.sh backend projects](https://roadmap.sh/projects/weather-api-wrapper-service) — a beginner-level challenge covering API integration, caching strategies, and secure configuration management.
+
 A production-ready weather API service built with Go that fetches weather data from a third-party weather service and provides it through a clean REST API interface.
 
 ## Features
@@ -25,7 +27,8 @@ A production-ready weather API service built with Go that fetches weather data f
 - **Docker Support**: Multi-stage Dockerfile for optimized image size
 - **Security**: Runs as non-root user in container
 - **CI/CD Pipeline**: Automated Docker image building and deployment via GitHub Actions
-- **Environment Configuration**: Environment-based configuration with `.env` support
+- **Environment Configuration**: Environment-based configuration with `.env` support — no hardcoded credentials
+- **Error Handling**: Handles invalid city names, upstream API failures, and Redis connection errors gracefully
 
 ## API Endpoints
 
@@ -264,6 +267,16 @@ Here's how the project evolved over time:
 12. **Code Documentation** - Added comments throughout the codebase for better code understanding
 13. **`.dockerignore`** - Added `.dockerignore` to keep Docker builds clean
 
+## Skills Covered
+
+This project covers the following backend development skills as outlined by [roadmap.sh](https://roadmap.sh/projects/weather-api-wrapper-service):
+
+- **Third-party API Integration** — connecting to and consuming the Visual Crossing Weather API
+- **Caching Mechanisms** — using Redis with TTL-based expiration to reduce redundant API calls
+- **Environment Variable Management** — securely loading API keys and connection strings via `.env`
+- **API Design Principles** — versioned REST endpoints with proper status codes and error responses
+- **Programming Language Fundamentals** — idiomatic Go code with packages, interfaces, and error handling
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -274,6 +287,18 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - **Input Sanitization**: URL query parameters are properly escaped
 - **Error Handling**: Comprehensive error handling with proper logging
 - **Secure Defaults**: Production environment uses structured JSON logging for better security monitoring
+
+## Project Source
+
+This project was built as part of the [roadmap.sh Weather API Wrapper Service](https://roadmap.sh/projects/weather-api-wrapper-service) challenge.
+
+**Difficulty:** Beginner
+
+**Core goals from roadmap.sh:**
+- Fetch weather data from an external API (Visual Crossing)
+- Cache responses in Redis using city name as the cache key
+- Store all API keys and connection strings as environment variables
+- Handle errors gracefully (invalid cities, API downtime)
 
 ## License
 
