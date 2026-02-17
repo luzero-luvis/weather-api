@@ -67,7 +67,7 @@ func (r *RedisClient) Set(ctx context.Context, key string, value interface{}) er
 		slog.Error("error setting data to redis", "key", key, "error", err)
 	}
 
-	slog.Debug("setting was successfull", "key", key)
+	slog.Debug("setting was successfull", "key", key, "ttl", sixHours)
 	return nil
 }
 
