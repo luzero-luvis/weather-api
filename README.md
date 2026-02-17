@@ -8,6 +8,7 @@ A production-ready weather API service built with Go that fetches weather data f
 - **Weather Data Retrieval**: Fetch current weather information for any city
 - **RESTful API**: Clean, versioned API endpoints following REST principles
 - **Health Check**: Built-in health monitoring endpoint for container orchestration
+- **Redis Caching**: Caches weather API responses in Redis for 6 hours to reduce upstream API calls
 
 ### Logging & Monitoring
 - **Structured Logging**: Uses Go's `slog` package for structured, searchable logs
@@ -70,8 +71,10 @@ GET /api/v1/weather?city={city_name}
 weather-api/
 ├── main.go                          # Application entry point
 ├── internal/
+│   ├── cache/
+│   │   └── radis.go                # Redis cache client (Get, Set, Delete, Close)
 │   ├── config/
-│   │   └── config.go               # Environment configuration
+│   │   └── config.go               # Environment configuration (incl. Redis)
 │   ├── client/
 │   │   └── weather-api.go          # Weather API client
 │   ├── logger/
@@ -87,6 +90,7 @@ weather-api/
 - **Language**: Go 1.25
 - **Router**: [Chi](https://github.com/go-chi/chi) - Lightweight, idiomatic HTTP router
 - **Logging**: `log/slog` - Go's native structured logging
+- **Cache**: [go-redis/v9](https://github.com/redis/go-redis) - Redis client for response caching with 6-hour TTL
 - **Configuration**: [godotenv](https://github.com/joho/godotenv) - Environment variable management
 - **Container**: Docker with Alpine Linux base
 
@@ -96,6 +100,7 @@ weather-api/
 - Go 1.25 or higher
 - Docker (optional, for containerized deployment)
 - Weather API key from your provider
+- Redis instance (local or remote)
 
 ### Local Development
 
@@ -118,6 +123,9 @@ API_KEY=your_weather_api_key_here
 PORT=8000
 BASE_URL=https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline
 ENV=development
+ADDR=localhost:6379
+REDIS_PASS=
+DB=0
 ```
 
 Environment variables:
@@ -125,6 +133,9 @@ Environment variables:
 - `PORT`: Port number for the server (default: 8000)
 - `BASE_URL`: Weather API base URL (required)
 - `ENV`: Environment mode - `development` or `production` (affects logging)
+- `ADDR`: Redis server address (e.g. `localhost:6379`)
+- `REDIS_PASS`: Redis password (leave empty if none)
+- `DB`: Redis database index (default: `0`)
 
 4. **Run the application**
 ```bash
@@ -148,6 +159,9 @@ docker run -d \
   -e PORT=8000 \
   -e BASE_URL=https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline \
   -e ENV=production \
+  -e ADDR=your_redis_host:6379 \
+  -e REDIS_PASS=your_redis_password \
+  -e DB=0 \
   --name weather-api \
   weather-api:latest
 ```
@@ -162,6 +176,26 @@ The project includes a GitHub Actions workflow that automatically:
 ### Required GitHub Secrets
 - `DOCKER_USERNAME`: Docker Hub username
 - `DOCKER_PASSWORD`: Docker Hub access token
+
+## Redis Caching
+
+Weather API responses are cached in Redis to avoid hitting the upstream API on every request.
+
+- **Cache key**: city name (e.g. `London`)
+- **TTL**: 6 hours — after that the entry expires and the next request fetches fresh data
+- **Cache hit**: data is returned directly from Redis (logged at `DEBUG` level)
+- **Cache miss**: the upstream weather API is called, the result is stored in Redis, then returned
+- **Connection timeout**: Redis connection is capped at 5 seconds; the app will error out on startup if Redis is unreachable
+
+### Cache operations (`internal/cache/radis.go`)
+
+| Method | Description |
+|--------|-------------|
+| `NewRedisClient(addr, pass, db)` | Connect to Redis and ping to verify the connection |
+| `Get(ctx, key, target)` | Retrieve a cached value and unmarshal JSON into `target` |
+| `Set(ctx, key, value)` | Marshal `value` to JSON and store it with a 6-hour TTL |
+| `Delete(ctx, key)` | Remove a key from the cache |
+| `Close()` | Gracefully close the Redis connection |
 
 ## Logging Examples
 
