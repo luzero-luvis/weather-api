@@ -208,21 +208,27 @@ http GET localhost:8000/api/v1/weather city==London
 http://localhost:8000/api/v1/weather?city=London
 ```
 
+## DON'T BE LIKE ME: DO NOT LOG YOUR API KEY 😂
+
+Seriously, I accidentally logged my API key to the console and had to scramble to remove it. Learn from my mistake -- **NEVER** log sensitive environment variables like API keys. If you see your secrets in your logs, rotate them IMMEDIATELY. Don't be a clown like me. 😂😂😂
+
 ## Development Timeline
 
-Based on commit history, here's how the project evolved:
+Here's how the project evolved over time:
 
-1. **Initial Setup**: Basic project structure with Go modules
-2. **HTTP Server**: Added basic HTTP server functionality
-3. **Chi Router**: Integrated Chi router for better routing capabilities
-4. **Health & Routes**: Added `/healthz` endpoint and API route structure
-5. **Weather Integration**: Implemented weather API client with JSON data fetching
-6. **Docker Support**: Created multi-stage Dockerfile
-7. **Security**: Added non-root user for Docker container
-8. **CI/CD**: Set up GitHub Actions workflow for automated deployment
-9. **Logging System**: Implemented structured logging with slog
-10. **Request Middleware**: Added logging middleware for request/response tracking
-11. **Environment-Based Logging**: Added development/production logging modes with appropriate log levels
+1. **Initial Setup** - Basic Go project scaffolding and module setup
+2. **HTTP Server & Dockerfile** - Set up a basic HTTP server and created a multi-stage Dockerfile
+3. **Chi Router** - Integrated the Chi router for cleaner, idiomatic routing
+4. **Health Check & Routes** - Added `/healthz` endpoint and organized API route structure
+5. **Weather API Integration** - Built the weather API client to fetch JSON data from VisualCrossing
+6. **Docker Security** - Added non-root user (`appuser`) to the Dockerfile
+7. **CI/CD Pipeline** - Set up GitHub Actions workflow to auto-build and push Docker images
+8. **Structured Logging** - Added `slog`-based logger with environment-aware log levels (debug for dev, info for prod)
+9. **Request Logging Middleware** - Built middleware to log every incoming request (method, path, status, duration, IP, user agent)
+10. **Environment Configuration** - Restructured env variable handling with `.env` support and proper config loading
+11. **Redis Caching** - Added Redis-based caching for weather API responses with a 6-hour TTL to reduce API calls
+12. **Code Documentation** - Added comments throughout the codebase for better code understanding
+13. **`.dockerignore`** - Added `.dockerignore` to keep Docker builds clean
 
 ## Contributing
 
