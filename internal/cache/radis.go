@@ -11,11 +11,13 @@ import (
 )
 
 // creating our own struct to create a connect and perform set and get Delete operation
+
 type RedisClient struct {
 	client *redis.Client
 }
 
 // this is where we connect to redis
+
 func NewRedisClient(addr, pass string, db int) (*RedisClient, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
@@ -24,17 +26,23 @@ func NewRedisClient(addr, pass string, db int) (*RedisClient, error) {
 	})
 
 	// if redis take more than 5 sec stop trying
+
 	ctx, close := context.WithTimeout(context.Background(), 5*time.Second)
 
 	// cut the connection once the work done
+
 	defer close()
 
 	// ping redis
+
+	// commented out because i don't want to termicate code if redis was not there
+
 	if err := client.Ping(ctx).Err(); err != nil {
-		return nil, fmt.Errorf("failed to connnect to redis %w", err)
+		// return nil, fmt.Errorf("failed to connnect to redis %w", err)
 	}
 
 	// return the clinet connnection
+
 	slog.Info("redis client connnected", "addr", addr)
 	return &RedisClient{client: client}, nil
 }
@@ -82,6 +90,10 @@ func (r *RedisClient) Set(ctx context.Context, key string, value interface{}) er
 
 	slog.Debug("setting was successfull", "key", key, "ttl", sixHours)
 	return nil
+}
+
+func (r *RedisClient) Ping(ctx context.Context) error {
+	return r.client.Ping(ctx).Err()
 }
 
 // deleting the data after 6 hour

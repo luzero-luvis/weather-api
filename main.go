@@ -38,7 +38,7 @@ func main() {
 
 	// connectig to reids
 
-	redisClinet, err := cache.NewRedisClient(conf.RedisAddr, conf.RedisPass, conf.RedisDB)
+	redisClient, err := cache.NewRedisClient(conf.RedisAddr, conf.RedisPass, conf.RedisDB)
 	if err != nil {
 		slog.Error("error connectig with redis", "error", err)
 		return
@@ -46,7 +46,7 @@ func main() {
 
 	// close the connection when work is done
 
-	defer redisClinet.Close()
+	defer redisClient.Close()
 
 	r := chi.NewRouter()
 
@@ -57,10 +57,13 @@ func main() {
 	// route to get healthz
 
 	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
+		if err := redisClient.Ping(r.Context()); err != nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			w.Write([]byte("redis is unavailble"))
+			return
+		}
 
-		slog.Debug("health check called")
+		w.Write([]byte("OK"))
 	})
 
 	// route to get actual weather data
@@ -89,7 +92,7 @@ func main() {
 
 			var weather client.WeatherResponse
 
-			err := redisClinet.Get(r.Context(), cacheKey, &weather)
+			err := redisClient.Get(r.Context(), cacheKey, &weather)
 
 			if err == nil {
 
@@ -121,7 +124,7 @@ func main() {
 
 			// caching the data to redis that we alreay called
 
-			if err := redisClinet.Set(r.Context(), cacheKey, &weatherData); err != nil {
+			if err := redisClient.Set(r.Context(), cacheKey, &weatherData); err != nil {
 				slog.Warn("failed to set the cache to redis", "city", city)
 			}
 
