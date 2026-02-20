@@ -118,7 +118,7 @@ func main() {
 					"city", city,
 					"error", err,
 				)
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				http.Error(w, "failed to fetch", http.StatusInternalServerError)
 				return
 			}
 

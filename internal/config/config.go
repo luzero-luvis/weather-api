@@ -1,11 +1,10 @@
 package config
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"strconv"
-
-	"github.com/godotenv/godotenv"
 )
 
 type Config struct {
@@ -19,8 +18,6 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
-	godotenv.Load()
-
 	redisDB, _ := strconv.Atoi(os.Getenv("DB"))
 	conf := &Config{
 		APIKey:    os.Getenv("API_KEY"),
@@ -30,6 +27,19 @@ func Load() (*Config, error) {
 		RedisAddr: os.Getenv("ADDR"),
 		RedisPass: os.Getenv("REDIS_PASS"),
 		RedisDB:   redisDB,
+	}
+
+	required := map[string]string{
+		"APIKey":    conf.APIKey,
+		"BaseURL":   conf.BaseURL,
+		"RedisAddr": conf.RedisAddr,
+		"RedisPass": conf.RedisPass,
+	}
+
+	for key, val := range required {
+		if val == "" {
+			return nil, fmt.Errorf("required env is missing: %s", key)
+		}
 	}
 
 	slog.Info("configuration loaded",

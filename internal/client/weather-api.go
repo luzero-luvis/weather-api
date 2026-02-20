@@ -24,6 +24,7 @@ type Day struct {
 }
 
 // the inputs for giving url to key and city name to func so it can get it from third party api
+
 func GetWeather(baseUrl, apiKey, city string) (*WeatherResponse, error) {
 	// removing white spaces from city when we enter in url
 	escapedCity := url.QueryEscape(city)
@@ -46,16 +47,18 @@ func GetWeather(baseUrl, apiKey, city string) (*WeatherResponse, error) {
 
 		slog.Error("failed to call weather api",
 			"city", city,
-			"erorr", err,
+			"erorr", err.(*url.Error).Err,
 		)
 
-		return nil, fmt.Errorf("error fecthing from api % w", err)
+		return nil, fmt.Errorf("error fecthing from api")
 	}
 
 	// closing the thing when im done with (saves memory)
+
 	defer resp.Body.Close()
 
 	// if api key is wrong or url is wrong it will log that
+
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 
