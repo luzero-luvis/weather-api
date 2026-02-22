@@ -7,6 +7,9 @@ import (
 	"log/slog"
 	"time"
 
+	"weather-api/internal/config"
+
+	"github.com/godotenv/godotenv"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -75,6 +78,12 @@ func (r *RedisClient) Get(ctx context.Context, key string, target interface{}) e
 // this where you will put cache to redis DB
 
 func (r *RedisClient) Set(ctx context.Context, key string, value interface{}) error {
+	godotenv.Load()
+
+	conf, err := config.Load()
+	if err != nil {
+		slog.Error("failed to Load env", "err", err)
+	}
 	// convertin go data to json to put redis
 	jsonData, err := json.Marshal(value)
 	if err != nil {
@@ -82,7 +91,7 @@ func (r *RedisClient) Set(ctx context.Context, key string, value interface{}) er
 		return err
 	}
 
-	sixHours := 6 * time.Hour
+	sixHours := time.Duration(conf.TLL) * time.Hour
 
 	if err := r.client.Set(ctx, key, jsonData, sixHours).Err(); err != nil {
 		slog.Error("error setting data to redis", "key", key, "error", err)

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type Config struct {
@@ -15,10 +16,12 @@ type Config struct {
 	RedisAddr string
 	RedisPass string
 	RedisDB   int
+	TLL       int
 }
 
 func Load() (*Config, error) {
 	redisDB, _ := strconv.Atoi(os.Getenv("DB"))
+	redisTls, _ := strconv.Atoi(os.Getenv("TLL"))
 	conf := &Config{
 		APIKey:    os.Getenv("API_KEY"),
 		Port:      os.Getenv("PORT"),
@@ -27,19 +30,29 @@ func Load() (*Config, error) {
 		RedisAddr: os.Getenv("ADDR"),
 		RedisPass: os.Getenv("REDIS_PASS"),
 		RedisDB:   redisDB,
+		TLL:       redisTls,
 	}
 
-	required := map[string]string{
+	// im using interface here i can be any type
+
+	required := map[string]interface{}{
 		"APIKey":    conf.APIKey,
 		"BaseURL":   conf.BaseURL,
 		"RedisAddr": conf.RedisAddr,
 		"RedisPass": conf.RedisPass,
+		"RedisTls":  conf.TLL,
 	}
-
+	var missing []string
 	for key, val := range required {
 		if val == "" {
-			return nil, fmt.Errorf("required env is missing: %s", key)
+			missing = append(missing, key)
 		}
+	}
+	if len(missing) > 0 {
+		for _, key := range missing {
+			slog.Error("missing env", "key", key)
+		}
+		return nil, fmt.Errorf("missing env(s): %s", strings.Join(missing, ""))
 	}
 
 	slog.Info("configuration loaded",

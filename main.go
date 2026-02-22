@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 
 	"weather-api/internal/cache"
@@ -23,8 +24,7 @@ func main() {
 
 	conf, err := config.Load()
 	if err != nil {
-		slog.Error("faied to load env", "error", err)
-		return
+		os.Exit(1)
 	}
 
 	// this is where you will set env so it can show logs based on env
