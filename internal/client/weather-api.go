@@ -50,7 +50,7 @@ func GetWeather(baseUrl, apiKey, city string) (*WeatherResponse, error) {
 			"erorr", err.(*url.Error).Err,
 		)
 
-		return nil, fmt.Errorf("error fecthing from api")
+		return nil, fmt.Errorf("error fetching from api: %w", err)
 	}
 
 	// closing the thing when im done with (saves memory)
